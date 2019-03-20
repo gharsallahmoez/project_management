@@ -1,5 +1,4 @@
 package gharsallahmoez.project_management.web;
-
 import gharsallahmoez.project_management.domain.Project;
 import gharsallahmoez.project_management.repositories.ProjectRepository;
 import gharsallahmoez.project_management.services.MapValidationErrorService;
@@ -10,7 +9,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
-
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -38,5 +36,10 @@ public class ProjectController {
     @GetMapping("/all")
     public Iterable<Project> getAllProjects(){
         return projectService.findAllProjects();
+    }
+    @DeleteMapping("/{projectId}")
+    public ResponseEntity<?> deleteProject(@PathVariable String projectId){
+        projectService.deleteProjectByIdentifier(projectId);
+        return new ResponseEntity<String>("Project with Id : '"+projectId+"' was deleted",HttpStatus.OK);
     }
 }
