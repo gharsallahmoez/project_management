@@ -2,16 +2,14 @@ package gharsallahmoez.project_management.web;
 
 import gharsallahmoez.project_management.domain.Project;
 import gharsallahmoez.project_management.repositories.ProjectRepository;
+import gharsallahmoez.project_management.services.MapValidationErrorService;
 import gharsallahmoez.project_management.services.ProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.HashMap;
@@ -22,18 +20,23 @@ import java.util.Map;
 public class ProjectController {
     @Autowired
     private ProjectService projectService;
-
+    @Autowired
+    private MapValidationErrorService mapValidationErrorService;
     @PostMapping("")
     public ResponseEntity<?> createNewProject(@Valid @RequestBody Project project , BindingResult result){
-       if(result.hasErrors()){
-           Map<String,String> errorMap = new HashMap<>();
-
-           for(FieldError error : result.getFieldErrors()){
-               errorMap.put(error.getField(),error.getDefaultMessage());
-           }
-           return new ResponseEntity<Map<String,String>>(errorMap,HttpStatus.BAD_REQUEST);
-       }
-        projectService.saveOrUpdateProject(project);
-        return new ResponseEntity<Project>(project,HttpStatus.CREATED);
+        ResponseEntity<?> errorMap = mapValidationErrorService.mapValidationService(result);
+        if(errorMap != null) return  errorMap;
+        //but if the user enter the same id ! errorMap will accept but database no ! so we have to create 3 exception classes
+        Project project1 = projectService.saveOrUpdateProject(project);
+        return new ResponseEntity<Project>(project1,HttpStatus.CREATED);
+    }
+    @GetMapping("/{projectId}")
+    public ResponseEntity<?> getProjectById(@PathVariable String projectId){
+        Project project = projectService.findProjectByIdentifier(projectId);
+        return new ResponseEntity<Project>(project, HttpStatus.OK);
+    }
+    @GetMapping("/all")
+    public Iterable<Project> getAllProjects(){
+        return projectService.findAllProjects();
     }
 }
